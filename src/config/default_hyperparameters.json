@@ -1,5 +1,5 @@
 {
   "n_splines": 5,
   "spline_order": 3,
-  "lam": 0.6
+  "lam": 2.0
 }
