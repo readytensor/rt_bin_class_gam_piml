@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from piml.models import GAMClassifier
 from sklearn.exceptions import NotFittedError
+from sklearn.metrics import f1_score
 
 warnings.filterwarnings("ignore")
 
@@ -26,25 +27,26 @@ class Classifier:
         spline_order: int = 3,
         lam: float = 0.6,
         max_iter: int = 100,
+        positive_class_weight: Optional[float] = 1,
         **kwargs,
     ):
         """
         Initializes the model with specified configurations.
 
         Parameters:
-            feature_names (Optional[List[str]]): The list of feature names. 
+            feature_names (Optional[List[str]]): The list of feature names.
                                                  Default is None.
-            feature_types (Optional[List[str]]): The list of feature types. 
-                                                 Available types include “numerical” 
+            feature_types (Optional[List[str]]): The list of feature types.
+                                                 Available types include “numerical”
                                                  and “categorical”. Default is None.
-            n_splines (int): Number of splines to use for the feature function. 
+            n_splines (int): Number of splines to use for the feature function.
                              Must be non-negative.
             spline_order (int): Order of spline to use for the feature function.
                                 Must be non-negative.
-            lam (float): Strength of smoothing penalty. Must be a positive float. 
-                                Larger values enforce stronger smoothing. 
-                                If single value is passed, it will be repeated for 
-                                every penalty. If iterable is passed, the length of lam 
+            lam (float): Strength of smoothing penalty. Must be a positive float.
+                                Larger values enforce stronger smoothing.
+                                If single value is passed, it will be repeated for
+                                every penalty. If iterable is passed, the length of lam
                                 must be equal to the length of penalties.
             max_iter (int): Maximum number of iterations allowed for the solver to converge.
             **kwargs: Additional keyword arguments for model configuration.
@@ -58,6 +60,7 @@ class Classifier:
         self.spline_order = int(spline_order)
         self.lam = float(lam)
         self.max_iter = int(max_iter)
+        self.positive_class_weight = positive_class_weight
         self.kwargs = kwargs
         self.model = self.build_model()
         self._is_trained = False
@@ -81,7 +84,9 @@ class Classifier:
             train_inputs (pandas.DataFrame): The features of the training data.
             train_targets (pandas.Series): The labels of the training data.
         """
-        self.model.fit(train_inputs, train_targets)
+        sample_weight = train_targets.map({0: 1, 1: self.positive_class_weight})
+        print(sample_weight)
+        self.model.fit(train_inputs, train_targets, sample_weight=sample_weight)
         self._is_trained = True
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
@@ -114,7 +119,8 @@ class Classifier:
             float: The accuracy of the binary classifier.
         """
         if self.model is not None:
-            return self.model.score(test_inputs, test_targets)
+            predictions = self.predict(test_inputs)
+            return f1_score(test_targets, predictions, average="weighted")
         raise NotFittedError("Model is not fitted yet.")
 
     def save(self, model_dir_path: str) -> None:

@@ -1,21 +1,12 @@
 {
-  "num_trials": 20,
+  "num_trials": 5,
   "hyperparameters": [
     {
-      "name": "n_splines",
-      "short_desc": "Number of splines to use for the feature function. Must be non-negative",
-      "type": "int",
-      "search_type": "uniform",
-      "range_low": 4,
-      "range_high": 6
-    },
-    {
-      "name": "lam",
-      "short_desc": "Strength of smoothing penalty. Must be a positive float. Larger values enforce stronger smoothing. If single value is passed, it will be repeated for every penalty. If iterable is passed, the length of lam must be equal to the length of penalties.",
-      "type": "real",
-      "search_type": "uniform",
-      "range_low": 0.1,
-      "range_high": 2.0
+      "name": "positive_class_weight",
+      "short_desc": "Weight of the positive class.",
+      "type": "categorical",
+      "categories": [2, 4, 6, 8, 10]
+
     }
   ]
 }

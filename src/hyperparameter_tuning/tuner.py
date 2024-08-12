@@ -67,7 +67,11 @@ class HyperParameterTuner:
         self.hpt_specs = hpt_specs
         self.hpt_results_dir_path = hpt_results_dir_path
         self.is_minimize = is_minimize
-        self.num_trials = hpt_specs.get("num_trials", 20)
+        self.num_trials = hpt_specs.get("num_trials", 5)
+        hyperparameters_list = hpt_specs["hyperparameters"]
+        self.search_space = {
+            hp_obj["name"]: hp_obj["categories"] for hp_obj in hyperparameters_list
+        }
         assert self.num_trials >= 2, "Hyperparameter Tuning needs at least 2 trials"
         # Create optuna study
         self.study = optuna.create_study(
@@ -75,7 +79,7 @@ class HyperParameterTuner:
             # always minimize because we handle the direction in the obj. function
             direction="minimize",
             # specify the sampler, with a fixed seed for reproducibility
-            sampler=optuna.samplers.TPESampler(seed=5),
+            sampler=optuna.samplers.GridSampler(search_space=self.search_space, seed=5),
         )
 
     def run_hyperparameter_tuning(
